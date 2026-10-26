@@ -3,7 +3,7 @@
 #pragma once
 
 #define FW_VERSION_MAJOR 1
-#define FW_VERSION_MINOR 0
+#define FW_VERSION_MINOR 1
 
 // ---------------- RS485 pins: FILL THESE IN ----------------
 // Use GPIO numbers for your ESP32-C3 board. Leave -1 until wired.
