@@ -7,9 +7,9 @@
 
 // ---------------- RS485 pins: FILL THESE IN ----------------
 // Use GPIO numbers for your ESP32-C3 board. Leave -1 until wired.
-#define DMX_DI_PIN    -1    // ESP32 TX  -> RS485 module DI  (data to the bus)
+#define DMX_DI_PIN    10    // ESP32 TX  -> RS485 module DI  (data to the bus)
 #define DMX_RO_PIN    -1    // RS485 RO  -> ESP32 RX         (unused; leave -1)
-#define DMX_EN_PIN    -1    // RS485 DE and RE tied together (held HIGH = transmit)
+#define DMX_EN_PIN    7     // RS485 DE and RE tied together (held HIGH = transmit)
 #define DMX_UART_NUM  1     // UART1 (UART0 is used by the USB serial port)
 
 // ---------------- status LED ----------------
