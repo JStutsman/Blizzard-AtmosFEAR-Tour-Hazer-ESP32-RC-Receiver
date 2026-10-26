@@ -98,7 +98,7 @@ Set the hazer's own DMX address to **510** (DMX512 Add in its menu). The receive
 
 ## Packet commands (HazerProtocol.h)
 
-DATA, SAFE, ENTER_CONFIG, SET_BASE, IDENTIFY, and STATUS (receiver -> remote). SET_BASE and IDENTIFY are handled by the receiver but the remote has no UI for them yet.
+DATA, SAFE, ENTER_CONFIG, SET_BASE, IDENTIFY, and STATUS (receiver -> remote). SET_BASE is sent from the remote's "DMX Addr Set" menu page (the receiver saves it to flash). IDENTIFY is handled by the receiver but the remote has no UI for it yet.
 
 ## Known assumptions to check on first run
 

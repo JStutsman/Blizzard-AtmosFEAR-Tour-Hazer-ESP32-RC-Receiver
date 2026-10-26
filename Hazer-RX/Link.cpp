@@ -128,9 +128,13 @@ void linkLoop(uint32_t now) {
   if (pendingBase) {
     uint16_t b = pendingBase;
     pendingBase = 0;
-    cfg.base = b;
-    settingsSave();
-    dmxZeroAll();
+    if (b != cfg.base) {            // the remote repeats SET_BASE until confirmed; save once
+      cfg.base = b;
+      settingsSave();
+      dmxZeroAll();
+      Serial.printf("[LINK] new base DMX address %u (channels %u-%u)\n",
+                    cfg.base, cfg.base, cfg.base + HZ_HAZER_VALUES - 1);
+    }
   }
 
   failsafe = !everData || (now - lastDataMs) > cfg.failsafeMs;
