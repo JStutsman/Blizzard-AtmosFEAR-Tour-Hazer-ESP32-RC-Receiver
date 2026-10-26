@@ -93,12 +93,13 @@ Set the hazer's own DMX address to **510** (DMX512 Add in its menu). The receive
 - Receiver zeroes all outputs if no data arrives for 3 s, and holds zero for the first 2 s after power-up and during config mode.
 - Receiver replies about 4x/s with: firmware version, its RSSI, the values it is outputting, and flags (fail-safe, config mode, identify).
 - Config mode ends by itself after 10 minutes without activity, or with the page's Exit button.
-- PIN: 4 digits, 3 wrong tries locks entry for 5 s.
+- PIN: 4 digits, 3 wrong tries locks entry for 5 s. PIN 1234 opens a debug/info screen.
+- One remote controls a receiver at a time. Other remotes are ignored and show "In use" until the controlling remote is silent for 3 s or deselects it; tapping the info line on the remote offers to take control right away.
 - LED patterns (receiver): N blinks while counting power cycles; one short blink = linked; double blink = fail-safe/no data; fast flicker = config mode; slow blink = identify.
 
 ## Packet commands (HazerProtocol.h)
 
-DATA, SAFE, ENTER_CONFIG, SET_BASE, IDENTIFY, and STATUS (receiver -> remote). SET_BASE is sent from the remote's "RX1 DMX Addr" / "RX2 DMX Addr" menu pages (the receiver saves it to flash). The remote remembers the address set for each receiver and resends it whenever that receiver reports a different one, so a receiver that was offline catches up when it is back. IDENTIFY is handled by the receiver but the remote has no UI for it yet.
+DATA, SAFE, ENTER_CONFIG, SET_BASE, IDENTIFY, TAKE_CONTROL, and STATUS (receiver -> remote). SET_BASE is sent from the remote's "RX1 DMX Addr" / "RX2 DMX Addr" menu pages (the receiver saves it to flash). The remote remembers the address set for each receiver and resends it whenever that receiver reports a different one, so a receiver that was offline catches up when it is back. IDENTIFY is handled by the receiver but the remote has no UI for it yet.
 
 ## Known assumptions to check on first run
 

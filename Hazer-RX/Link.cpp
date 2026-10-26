@@ -2,6 +2,9 @@
 // Receives HzPacket frames from the remote, writes values into the DMX frame using
 // RELATIVE addressing (DMX channel = cfg.base + value index), enforces the fail-safe,
 // and replies with HzStatus (heartbeat, version, RSSI, value echo, flags).
+// One remote at a time has control (the owner). Packets from other remotes are ignored
+// and answered with HZ_FLAG_BUSY, until the owner is silent for OWNER_TIMEOUT_MS,
+// releases with SAFE, or another remote sends TAKE_CONTROL.
 #include <Arduino.h>
 #include <WiFi.h>
 #include <esp_now.h>
@@ -15,8 +18,13 @@
 
 volatile bool g_outputsAllowed = false;
 
-static uint8_t           txMac[6];
-static volatile bool     haveTx = false;
+static uint8_t           ownerMac[6];
+static volatile bool     haveOwner = false;
+static volatile uint32_t ownerLastMs = 0;
+static volatile bool     ownerChanged = false;  // log it from the loop
+static uint8_t           otherMac[6];           // last remote that was refused
+static volatile bool     haveOther = false;
+static volatile uint32_t otherLastMs = 0;
 static volatile bool     cfgReq = false;
 static volatile uint16_t pendingBase = 0;
 static volatile uint32_t lastDataMs = 0;
@@ -36,8 +44,27 @@ static void onRecv(const esp_now_recv_info_t* info, const uint8_t* data, int len
   if (p->magic != HZ_MAGIC || p->version != HZ_PROTOCOL_VERSION) return;
   if (settingsMacIsSet() && memcmp(info->src_addr, cfg.txMac, 6) != 0) return;
 
-  memcpy(txMac, info->src_addr, 6);
-  haveTx   = true;
+  uint32_t now = millis();
+  bool isOwner    = haveOwner && memcmp(info->src_addr, ownerMac, 6) == 0;
+  bool ownerStale = !haveOwner || (now - ownerLastMs) > OWNER_TIMEOUT_MS;
+  if (!isOwner) {
+    if (!ownerStale && p->cmd != HZ_CMD_TAKE_CONTROL) {
+      memcpy(otherMac, info->src_addr, 6);   // refused: status replies tell it "in use"
+      haveOther   = true;
+      otherLastMs = now;
+      return;
+    }
+    if (!ownerStale) {                        // taken over: tell the old owner from now on
+      memcpy(otherMac, ownerMac, 6);
+      haveOther   = true;
+      otherLastMs = now;
+    }
+    memcpy(ownerMac, info->src_addr, 6);
+    haveOwner    = true;
+    ownerChanged = true;
+  }
+  ownerLastMs = now;
+
   lastRssi = info->rx_ctrl->rssi;
   lastSeq  = p->seq;
   lastAnyMs = millis();
@@ -58,6 +85,9 @@ static void onRecv(const esp_now_recv_info_t* info, const uint8_t* data, int len
     case HZ_CMD_SAFE:
       dmxZeroAll();
       everData = false;           // back to fail-safe until new data arrives
+      ownerLastMs = now - OWNER_TIMEOUT_MS - 1;   // released: any remote may take control
+      break;
+    case HZ_CMD_TAKE_CONTROL:     // ownership was handled above
       break;
     case HZ_CMD_ENTER_CONFIG:
       cfgReq = true;
@@ -83,7 +113,7 @@ static void ensurePeer(const uint8_t* mac) {
   esp_now_add_peer(&pi);
 }
 
-static void sendStatus() {
+static void sendStatus(const uint8_t* dest, uint8_t extraFlags) {
   HzStatus s = {};
   s.magic    = HZ_MAGIC;
   s.version  = HZ_PROTOCOL_VERSION;
@@ -95,13 +125,14 @@ static void sendStatus() {
   if (failsafe)               s.flags |= HZ_FLAG_FAILSAFE;
   if (configModeActive())     s.flags |= HZ_FLAG_CONFIG;
   if (linkIdentifyActive())   s.flags |= HZ_FLAG_IDENTIFY;
+  s.flags   |= extraFlags;
   s.count    = HZ_HAZER_VALUES;
   for (uint8_t i = 0; i < HZ_HAZER_VALUES; i++) s.echo[i] = dmxGetChannel(cfg.base + i);
   s.baseAddr = cfg.base;
   s.rxRssi   = lastRssi;
 
   uint8_t mac[6];
-  memcpy(mac, txMac, 6);
+  memcpy(mac, dest, 6);
   ensurePeer(mac);
   esp_now_send(mac, (const uint8_t*)&s, sizeof(s));
 }
@@ -149,9 +180,16 @@ void linkLoop(uint32_t now) {
   }
 
   static uint32_t lastStatus = 0;
-  if (espnowOk && haveTx && (now - lastStatus) >= STATUS_INTERVAL_MS) {
+  if (espnowOk && (now - lastStatus) >= STATUS_INTERVAL_MS) {
     lastStatus = now;
-    sendStatus();
+    if (haveOwner) sendStatus(ownerMac, 0);
+    if (haveOther && (now - otherLastMs) < 1000) sendStatus(otherMac, HZ_FLAG_BUSY);
+  }
+
+  if (ownerChanged) {
+    ownerChanged = false;
+    Serial.printf("[LINK] controlled by %02X:%02X:%02X:%02X:%02X:%02X\n",
+                  ownerMac[0], ownerMac[1], ownerMac[2], ownerMac[3], ownerMac[4], ownerMac[5]);
   }
 }
 

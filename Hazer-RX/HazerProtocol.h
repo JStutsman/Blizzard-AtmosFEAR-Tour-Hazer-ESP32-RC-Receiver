@@ -23,6 +23,7 @@ enum HzCmd : uint8_t {
   HZ_CMD_ENTER_CONFIG = 3,   // TX -> RX: stop output and start setup WiFi
   HZ_CMD_SET_BASE     = 4,   // TX -> RX: arg = new base DMX address (saved to flash)
   HZ_CMD_IDENTIFY     = 5,   // TX -> RX: blink the receiver LED for a few seconds
+  HZ_CMD_TAKE_CONTROL = 6,   // TX -> RX: make the sender the controlling remote now
   HZ_CMD_STATUS       = 0x80 // RX -> TX: status reply / heartbeat
 };
 
@@ -31,7 +32,8 @@ enum HzStatusFlags : uint8_t {
   HZ_FLAG_FAILSAFE       = 0x01,  // receiver is in fail-safe (outputs zeroed)
   HZ_FLAG_CONFIG         = 0x02,  // receiver is in config mode
   HZ_FLAG_RESERVED_WARMUP = 0x04, // reserved (not used yet)
-  HZ_FLAG_IDENTIFY       = 0x08   // identify blink active
+  HZ_FLAG_IDENTIFY       = 0x08,  // identify blink active
+  HZ_FLAG_BUSY           = 0x10   // another remote has control; this remote's commands are ignored
 };
 
 #pragma pack(push, 1)

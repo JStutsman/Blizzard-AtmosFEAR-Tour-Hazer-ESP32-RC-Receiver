@@ -24,6 +24,7 @@
 // ---------------- behaviour ----------------
 #define DEFAULT_FAILSAFE_MS     3000   // zero outputs if no data packet for this long
 #define STATUS_INTERVAL_MS      250    // heartbeat / status reply rate
+#define OWNER_TIMEOUT_MS        3000   // another remote may take over after the owner is silent this long
 
 // ---------------- setup WiFi (config mode) ----------------
 #define SETUP_SSID_PREFIX   "Hazer-RX-Setup-"   // MAC suffix is appended
