@@ -84,7 +84,7 @@ Set the hazer's own DMX address to **510** (DMX512 Add in its menu). The receive
 
 1. **Receiver alone:** flash Hazer-RX, wire the RS485 module, power-cycle it 5 times quickly (each power-on shorter than 2 s). The LED flickers fast = config mode. Join the WiFi `Hazer-RX-Setup-<MAC>` (password `48174817`), open `http://192.168.4.1`, use the **Bench test** sliders to confirm the hazer responds. No remote needed.
 2. **Link:** put the receiver's MAC in the remote's Config.h, flash the remote. The blue LCD should change from "No Link" to "Ready Haze" and show `RX v1.0`, dBm and the echoed values.
-3. **Panel:** try START/STOP, MANUAL (hold), TIMER, and the FUNCTION menus.
+3. **Panel:** try START/STOP, MANUAL (hold), TIMER, and the FUNCTION menus (the hazer's own pages). The gear icon opens Settings: receivers, DMX addresses, display mode and backlight.
 4. **Config via remote:** hold the blue LCD area for 2 seconds -> PIN -> confirm.
 
 ## How it behaves
@@ -99,7 +99,7 @@ Set the hazer's own DMX address to **510** (DMX512 Add in its menu). The receive
 
 ## Packet commands (HazerProtocol.h)
 
-DATA, SAFE, ENTER_CONFIG, SET_BASE, IDENTIFY, TAKE_CONTROL, and STATUS (receiver -> remote). SET_BASE is sent from the remote's "RX1 DMX Addr" / "RX2 DMX Addr" menu pages (the receiver saves it to flash). The remote remembers the address set for each receiver and resends it whenever that receiver reports a different one, so a receiver that was offline catches up when it is back. IDENTIFY is handled by the receiver but the remote has no UI for it yet.
+DATA, SAFE, ENTER_CONFIG, SET_BASE, IDENTIFY, TAKE_CONTROL, and STATUS (receiver -> remote). SET_BASE is sent from the remote's Settings screen (gear icon, top-left of the blue LCD; the receiver saves it to flash). The remote remembers the address set for each receiver and resends it whenever that receiver reports a different one, so a receiver that was offline catches up when it is back. IDENTIFY is handled by the receiver but the remote has no UI for it yet.
 
 ## Known assumptions to check on first run
 
