@@ -1,0 +1,4 @@
+# keep binary files byte-exact (no line-ending conversion)
+*.pdf binary
+*.png binary
+*.jpg binary
